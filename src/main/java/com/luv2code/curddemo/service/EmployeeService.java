@@ -1,0 +1,9 @@
+package com.luv2code.curddemo.service;
+
+import com.luv2code.curddemo.entity.Employee;
+
+import java.util.List;
+
+public interface EmployeeService {
+    List<Employee> findAll();
+}

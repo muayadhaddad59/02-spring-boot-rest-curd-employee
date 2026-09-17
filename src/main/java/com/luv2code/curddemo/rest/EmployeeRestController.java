@@ -3,10 +3,7 @@ package com.luv2code.curddemo.rest;
 import com.luv2code.curddemo.entity.Employee;
 import com.luv2code.curddemo.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -40,4 +37,18 @@ public class EmployeeRestController {
         return theEmployee;
     }
 
+    // Add mapping for POST / employees - add new employee
+    @PostMapping("/employees")
+    public Employee addEmployee(@RequestBody Employee theEmployee) {
+        // also just in case they pass an id in JSON .. set id to 0
+        // this is to force a save of new item ... instead of update
+
+        // if your employee class has int id:: then you can use theEmployee(0)
+        // However, if you have alternate coding in employee class: private Integer id;  ::  then you must use theEmployee.setId(null);
+
+        theEmployee.setId(0);
+
+        Employee dbEmployee = employeeService.save(theEmployee);
+        return  dbEmployee;
+    }
 }

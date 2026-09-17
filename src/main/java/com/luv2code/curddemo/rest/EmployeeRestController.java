@@ -4,8 +4,10 @@ import com.luv2code.curddemo.entity.Employee;
 import com.luv2code.curddemo.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -13,10 +15,13 @@ public class EmployeeRestController {
 
     private EmployeeService employeeService;
 
+    private JsonMapper jsonMapper;
+
     // Quick and dirty: inject employee dao (use contractor injection)
     @Autowired
-    public EmployeeRestController(EmployeeService theEmployeeService){
+    public EmployeeRestController(EmployeeService theEmployeeService, JsonMapper theJsonMapper){
         employeeService = theEmployeeService;
+        jsonMapper = theJsonMapper; // JsonMapper is auto-configured by Spring Boot for Json processing
     }
 
     // expose "/employees" and return a list of employees
@@ -56,6 +61,28 @@ public class EmployeeRestController {
     @PutMapping("/employees")
     public Employee updateEmployee(@RequestBody Employee theEmployee) {
         Employee dbEmployee = employeeService.save(theEmployee);
+
+        return dbEmployee;
+    }
+
+    // add mapping for PATCH
+    @PatchMapping("/employees/{employeeId}")
+    public Employee patchEmployee(@PathVariable int employeeId, @RequestBody Map<String,Object> patchPayload) {
+
+        Employee tempEmployee = employeeService.findById(employeeId);
+
+        // throw exception if null
+        if(tempEmployee == null) {
+            throw new RuntimeException("Employee id not found - " + employeeId);
+        }
+        // throw exception if request body contains "id" key
+        if(patchPayload.containsKey("id")) {
+            throw new RuntimeException("Employee id not allowed in request body - " + employeeId);
+        }
+
+        Employee patchedEmployee = jsonMapper.updateValue(tempEmployee, patchPayload);
+
+        Employee dbEmployee = employeeService.save(patchedEmployee);
 
         return dbEmployee;
     }
